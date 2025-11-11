@@ -45,8 +45,10 @@
             <!-- Number of Notifications box -->
             <span id="notification-number" class="text-white bg-red-700 absolute rounded-full text-sm -mt-2.5 ml-2 py-0 px-1.5"></span>
           </a>
-    <ul class="collapse min-w-max absolute bg-white text-base z-50 float-left py-2 list-none text-left rounded-lg shadow-lg mt-1 m-0 bg-clip-padding border-none left-auto right-0"
-        aria-labelledby="dropdownMenuButton1" id="notification-dropdown">
+      {% comment %}     collapse min-w-max absolute bg-white text-base z-50 float-left py-2 list-none text-left rounded-lg shadow-lg mt-1 m-0 bg-clip-padding border-none left-auto right-0" {% endcomment %}  
+      {% comment %}dropdown-menu min-w-max absolute hidden bg-white text-base z-50 float-left py-2 list-none text-left rounded-lg shadow-lg mt-1 hidden m-0 bg-clip-padding border-none left-auto right-0 {% endcomment %}          
+        <ul class="dropdown-menu collapse min-w-max absolute hidden bg-white text-base z-50 float-left py-2 list-none text-left rounded-lg shadow-lg mt-1 m-0 bg-clip-padding border-none left-auto right-0"
+            aria-labelledby="dropdownMenuButton1" id="notification-dropdown">
               <!-- Notifications go here -->
               <hr class="h-0 my-2 border border-solid border-t-0 border-gray-700 opacity-25" />
               <div id="notifications">
