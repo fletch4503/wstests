@@ -25,17 +25,19 @@ def send_notifications_on_signup(sender, instance, created, **kwargs):
         channel_name = f"user_{instance.id}"
         event = {
             "type": "user_joined",
+            # "type": "system_notification",
             "text": instance.username,
+        }
+        message = {
+            "type": "system_notification",
+            "level": "info",
+            "title": "Добро пожаловать!",
+            "message": f"Аккаунт {instance.email} успешно создан.",
+            "timestamp": timezone.now().isoformat(),
         }
         async_to_sync(channel_layer.group_send)(
             group_name,
-            {
-                "type": "system_notification",
-                "level": "info",
-                "title": "Добро пожаловать!",
-                "message": f"Аккаунт {instance.email} успешно создан.",
-                "timestamp": timezone.now().isoformat(),
-            },
+            message,
         )
 
 

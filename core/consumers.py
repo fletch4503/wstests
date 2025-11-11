@@ -2,7 +2,7 @@ import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, get_template
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -31,17 +31,27 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             # Check for login notification flag after accepting
             if cache.get(f"user_{user.id}_login_notification"):
                 # Send login notification
-                message = render_to_string(
-                    "core/partials/notifications.html",
-                    {
+                html = get_template("core/partials/notifications.html").render(
+                    context={
                         "username": user.username,
                         "title": "Добро пожаловать!",
                         "message": f"Пользователь {user.username} вошел в систему.",
                         "level": "info",
-                    },
+                    }
                 )
+                # message = render_to_string(
+                #     "core/partials/notifications.html",
+                #     # message =
+                #     {
+                #         "username": user.username,
+                #         "title": "Добро пожаловать!",
+                #         "message": f"Пользователь {user.username} вошел в систему.",
+                #         "level": "info",
+                #     },
+                # )
                 try:
-                    await self.send(text_data=json.dumps({"message": message}))
+                    # await self.send(text_data=json.dumps({"message": message}))
+                    await self.send(text_data=html)
                 except OSError:
                     pass  # Client may have disconnected
                 # Clear the flag
@@ -70,6 +80,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"message": message}))
         except OSError:
             pass  # Client may have disconnected
+
+    async def user_joined(self, event):
+        await self.send(text_data=event["text"])
 
     # def receive(self, text_data=None, bytes_data=None):
     #     # Called with either text_data or bytes_data for each frame

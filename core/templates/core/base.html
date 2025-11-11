@@ -14,7 +14,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx-ext-ws/dist/ws.js"></script>
 
-    <script>
+    {% comment %} <script>
     document.body.addEventListener('htmx:wsMessage', function(event) {
         const messageData = JSON.parse(event.detail.message);
         // Handle incoming messages and update the notifications area
@@ -24,7 +24,7 @@
             notificationsDiv.insertAdjacentHTML('afterbegin', messageData.message);
         }
     });
-    </script>
+    </script> {% endcomment %}
 
     {% block head %}
 
@@ -42,6 +42,18 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/tw-elements/dist/js/index.min.js"></script>
+    <script>
+        let numberSpan = document.getElementById('notification-number')
+
+        document.body.addEventListener('htmx:wsAfterMessage', (e) => {
+            let numberOfNotifications = numberSpan.innerHTML;
+            if (!numberOfNotifications) {
+                numbenumberSpan.innerHTML = 1;
+            } else {
+                numbenumberSpan.innerHTML = parseInt(numberOfNotifications) + 1;
+            }
+         })
+    </script>
 
 </body>
 </html>
