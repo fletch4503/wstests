@@ -5,22 +5,20 @@ from django.core.cache import cache
 from django.template.loader import render_to_string, get_template
 from django.utils import timezone
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         # Called on connection.
-        # To accept the connection call:
-        # cache.clear()
         user = self.scope["user"]
         if user.is_anonymous:
             await self.close()
         else:
             # self.group_name = f"user_{user.id}"
             self.group_name = f"user_{user.id}_notifications"
-            logger.info(
+            log.info(
                 "Consumers Connect --> Group Name: %s, Channel Name: %s",
                 self.group_name,
                 self.channel_name,
@@ -35,7 +33,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     context={
                         "username": user.username,
                         "title": "Добро пожаловать!",
-                        "message": f"Пользователь {user.username} вошел в систему.",
+                        "message": f"{user.username} вошел в систему.",
                         "level": "info",
                     }
                 )
@@ -56,33 +54,53 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     pass  # Client may have disconnected
                 # Clear the flag
                 cache.delete(f"user_{user.id}_login_notification")
-                logger.info(
+                log.info(
                     "Consumers -> Login notification sent on connect for user: %s",
                     user.id,
                 )
 
     async def system_notification(self, event):
-        title = event.get("title", "Уведомление")
+        user = self.scope["user"]
+        title_text = event.get("title", "Уведомление")
         message_text = event["message"]
         level = event.get("level", "info")
         timestamp = event.get("timestamp", timezone.now().isoformat())
-        message = render_to_string(
-            "core/partials/notifications.html",
-            {
-                "title": title,
+        html = get_template("core/partials/notifications.html").render(
+            context={
+                "username": user.username,
+                "title": title_text,
                 "message": message_text,
-                "level": level,
-                "timestamp": timestamp,
-            },
+                "level": "info",
+            }
         )
-        logger.info("Consumers --> system_notification event: %s", event)
+        # message = render_to_string(
+        #     "core/partials/notifications.html",
+        #     {
+        #         "title": title,
+        #         "message": message_text,
+        #         "level": level,
+        #         "timestamp": timestamp,
+        #     },
+        # )
+        log.info("Consumers --> system_notification event: %s", event)
         try:
-            await self.send(text_data=json.dumps({"message": message}))
+            await self.send(text_data=html)
+            # await self.send(text_data=json.dumps({"message": message}))
         except OSError:
             pass  # Client may have disconnected
 
     async def user_joined(self, event):
-        await self.send(text_data=event["text"])
+        user = self.scope["user"]
+        html = get_template("core/partials/notifications.html").render(
+            context={
+                "username": event["text"],
+                "title": event["title"],
+                "message": event["message"],
+                "level": event["level"],
+            }
+        )
+        await self.send(text_data=html)
+        # await self.send(text_data=event["text"])
 
     # def receive(self, text_data=None, bytes_data=None):
     #     # Called with either text_data or bytes_data for each frame
@@ -99,7 +117,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         # Leave room group
         if hasattr(self, "group_name"):
             # cache.clear()
-            logger.info(
+            log.info(
                 "Consumers --> disconnect group_name: %s, channel_name: %s",
                 self.group_name,
                 self.channel_name,
