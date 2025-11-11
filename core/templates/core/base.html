@@ -16,12 +16,12 @@
 
     {% comment %} <script>
     document.body.addEventListener('htmx:wsMessage', function(event) {
-        const messageData = JSON.parse(event.detail.message);
+        const messageData = event.detail.message;
         // Handle incoming messages and update the notifications area
-        if (messageData.message) {
+        if (messageData) {
             // Assuming the message is HTML, insert it into the notifications div
             const notificationsDiv = document.getElementById('notifications');
-            notificationsDiv.insertAdjacentHTML('afterbegin', messageData.message);
+            notificationsDiv.insertAdjacentHTML('afterbegin', messageData);
         }
     });
     </script> {% endcomment %}
@@ -48,9 +48,9 @@
         document.body.addEventListener('htmx:wsAfterMessage', (e) => {
             let numberOfNotifications = numberSpan.innerHTML;
             if (!numberOfNotifications) {
-                numbenumberSpan.innerHTML = 1;
+                numberSpan.innerHTML = 1;
             } else {
-                numbenumberSpan.innerHTML = parseInt(numberOfNotifications) + 1;
+                numberSpan.innerHTML = parseInt(numberOfNotifications) + 1;
             }
          })
     </script>

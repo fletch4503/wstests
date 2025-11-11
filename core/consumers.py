@@ -50,7 +50,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 #     },
                 # )
                 try:
-                    # await self.send(text_data=json.dumps({"message": message}))
+                    # await self.send(text_data=json.dumps({"message": html}))
                     await self.send(text_data=html)
                 except OSError:
                     pass  # Client may have disconnected
