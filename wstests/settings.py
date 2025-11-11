@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -162,7 +163,7 @@ LOGGING = {
             "datefmt": "%y-%m-%d %H:%M:%S",
             "log_colors": {
                 "DEBUG": "cyan",
-                "INFO": "light_white",
+                "INFO": "green",
                 # light_black, light_red, light_green, light_yellow, light_blue, light_purple, light_cyan, light_white
                 # black, red, green, yellow, blue, purple, cyan, white
                 # fg_{color} — цвет переднего плана (текста) bg_{color} — цвет фона
