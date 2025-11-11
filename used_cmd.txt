@@ -1,3 +1,5 @@
 python manage.py cleanup_orphaned_emails --dry-run
 
-python manage.py cleanup_orphaned_emails 
+python manage.py cleanup_orphaned_emails
+
+python manage.py
