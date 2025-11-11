@@ -1,21 +1,22 @@
 import json
 import logging
-from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache
-from asgiref.sync import async_to_sync
+from django.template.loader import render_to_string
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 
-class NotificationConsumer(WebsocketConsumer):
+class NotificationConsumer(AsyncWebsocketConsumer):
 
-    def connect(self):
+    async def connect(self):
         # Called on connection.
         # To accept the connection call:
         # cache.clear()
         user = self.scope["user"]
         if user.is_anonymous:
-            self.close()
+            await self.close()
         else:
             # self.group_name = f"user_{user.id}"
             self.group_name = f"user_{user.id}_notifications"
@@ -25,22 +26,22 @@ class NotificationConsumer(WebsocketConsumer):
                 self.channel_name,
             )
             # Join room group
-            async_to_sync(self.channel_layer.group_add)(
-                self.group_name, self.channel_name
-            )
-            self.accept()  # To accept the connection
+            await self.channel_layer.group_add(self.group_name, self.channel_name)
+            await self.accept()  # To accept the connection
             # Check for login notification flag after accepting
             if cache.get(f"user_{user.id}_login_notification"):
                 # Send login notification
-                from django.template.loader import render_to_string
-                from django.utils import timezone
-
                 message = render_to_string(
-                    "core/partials/notifications_partial.html",
-                    {"username": user.username},
+                    "core/partials/notifications.html",
+                    {
+                        "username": user.username,
+                        "title": "Добро пожаловать!",
+                        "message": f"Пользователь {user.username} вошел в систему.",
+                        "level": "info",
+                    },
                 )
                 try:
-                    self.send(text_data=json.dumps({"message": message}))
+                    await self.send(text_data=json.dumps({"message": message}))
                 except OSError:
                     pass  # Client may have disconnected
                 # Clear the flag
@@ -50,11 +51,23 @@ class NotificationConsumer(WebsocketConsumer):
                     user.id,
                 )
 
-    def system_notification(self, event):
-        message = event["message"]
+    async def system_notification(self, event):
+        title = event.get("title", "Уведомление")
+        message_text = event["message"]
+        level = event.get("level", "info")
+        timestamp = event.get("timestamp", timezone.now().isoformat())
+        message = render_to_string(
+            "core/partials/notifications.html",
+            {
+                "title": title,
+                "message": message_text,
+                "level": level,
+                "timestamp": timestamp,
+            },
+        )
         logger.info("Consumers --> system_notification event: %s", event)
         try:
-            self.send(text_data=json.dumps({"message": message}))
+            await self.send(text_data=json.dumps({"message": message}))
         except OSError:
             pass  # Client may have disconnected
 
@@ -69,7 +82,7 @@ class NotificationConsumer(WebsocketConsumer):
     #     # Or add a custom WebSocket error code!
     #     self.close(code=4123)
 
-    def disconnect(self, close_code):
+    async def disconnect(self, close_code):
         # Leave room group
         if hasattr(self, "group_name"):
             # cache.clear()
@@ -78,6 +91,4 @@ class NotificationConsumer(WebsocketConsumer):
                 self.group_name,
                 self.channel_name,
             )
-            async_to_sync(self.channel_layer.group_discard)(
-                self.group_name, self.channel_name
-            )
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)

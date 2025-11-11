@@ -7,3 +7,5 @@ python manage.py migrate
 python manage.py daphne wstests.asgi:application
 
 daphne wstests.asgi:application --port 8000
+
+taskkill /f /im daphne.exe

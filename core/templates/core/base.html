@@ -14,13 +14,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx-ext-ws/dist/ws.js"></script>
 
+    <script>
+    document.body.addEventListener('htmx:wsMessage', function(event) {
+        const messageData = JSON.parse(event.detail.message);
+        // Handle incoming messages and update the notifications area
+        if (messageData.message) {
+            // Assuming the message is HTML, insert it into the notifications div
+            const notificationsDiv = document.getElementById('notifications');
+            notificationsDiv.insertAdjacentHTML('afterbegin', messageData.message);
+        }
+    });
+    </script>
+
     {% block head %}
 
     {% endblock %}
 </head>
 
-{% comment %} <body hx-ext="ws" ws-connect="/ws/notifications/"> {% endcomment %}
-<body>
+<body hx-ext="ws" ws-connect="/ws/notifications/">
 
     {% include 'core/navbar.html' %}
 
