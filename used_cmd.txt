@@ -2,4 +2,8 @@ python manage.py cleanup_orphaned_emails --dry-run
 
 python manage.py cleanup_orphaned_emails
 
-python manage.py
+python manage.py migrate
+
+python manage.py daphne wstests.asgi:application
+
+daphne wstests.asgi:application --port 8000

@@ -1,7 +1,10 @@
 import json
+import logging
 from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
 from django.core.cache import cache
 from asgiref.sync import async_to_sync
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationConsumer(WebsocketConsumer):
@@ -16,10 +19,9 @@ class NotificationConsumer(WebsocketConsumer):
         else:
             # self.group_name = f"user_{user.id}"
             self.group_name = f"user_{user.id}_notifications"
-            print(
-                "Consumers Connect --> Group Name:",
+            logger.info(
+                "Consumers Connect --> Group Name: %s, Channel Name: %s",
                 self.group_name,
-                " Channel Name:",
                 self.channel_name,
             )
             # Join room group
@@ -37,17 +39,24 @@ class NotificationConsumer(WebsocketConsumer):
                     "core/partials/notifications_partial.html",
                     {"username": user.username},
                 )
-                self.send(text_data=json.dumps({"message": message}))
+                try:
+                    self.send(text_data=json.dumps({"message": message}))
+                except OSError:
+                    pass  # Client may have disconnected
                 # Clear the flag
                 cache.delete(f"user_{user.id}_login_notification")
-                print(
-                    "Consumers -> Login notification sent on connect for user:", user.id
+                logger.info(
+                    "Consumers -> Login notification sent on connect for user: %s",
+                    user.id,
                 )
 
     def system_notification(self, event):
         message = event["message"]
-        print("Consumers --> system_notification event:", event)
-        self.send(text_data=json.dumps({"message": message}))
+        logger.info("Consumers --> system_notification event: %s", event)
+        try:
+            self.send(text_data=json.dumps({"message": message}))
+        except OSError:
+            pass  # Client may have disconnected
 
     # def receive(self, text_data=None, bytes_data=None):
     #     # Called with either text_data or bytes_data for each frame
@@ -64,10 +73,9 @@ class NotificationConsumer(WebsocketConsumer):
         # Leave room group
         if hasattr(self, "group_name"):
             # cache.clear()
-            print(
-                "Consumers --> disconnect group_name: ",
+            logger.info(
+                "Consumers --> disconnect group_name: %s, channel_name: %s",
                 self.group_name,
-                "channel_name: ",
                 self.channel_name,
             )
             async_to_sync(self.channel_layer.group_discard)(

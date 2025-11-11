@@ -8,6 +8,9 @@ from asgiref.sync import async_to_sync
 from django.utils import timezone
 from django.core.cache import cache
 from django.template.loader import render_to_string
+import logging
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -42,7 +45,7 @@ def send_login_notification(sender, request, user, **kwargs):
     cache.set(
         f"user_{user.id}_login_notification", True, timeout=60
     )  # 60 seconds timeout
-    print("Singals -> Login notification flag set for user:", user.id)
+    logger.info("Signals -> Login notification flag set for user ID: %s", user.id)
 
 
 user_logged_in.connect(send_login_notification)
@@ -62,15 +65,14 @@ def send_logout_notification(sender, request, user, **kwargs):
         "message": f"Пользователь {user.username} вышел из системы.",
         "timestamp": timezone.now().isoformat(),
     }
-    print("Выходит User: ", user)
+    logger.info("Выходит User: %s", user)
     async_to_sync(channel_layer.group_send)(
         group_name,
         context,
     )
-    print(
-        "Singals -> LOGOUT notification sent to group:",
+    logger.info(
+        "Signals -> LOGOUT notification sent to group: %s, Channel Name: %s",
         group_name,
-        "Channel Name: ",
         channel_name,
     )
 
