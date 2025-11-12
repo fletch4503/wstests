@@ -1,9 +1,13 @@
-import json
+# import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache
-from django.template.loader import render_to_string, get_template
-from django.utils import timezone
+from django.template.loader import (
+    # render_to_string,
+    get_template,
+)
+
+# from django.utils import timezone
 
 log = logging.getLogger(__name__)
 
@@ -12,77 +16,55 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         # Called on connection.
-        user = self.scope["user"]
-        if user.is_anonymous:
+        self.user = self.scope["user"]
+        if self.user.is_anonymous or not self.user.is_authenticated:
             await self.close()
         else:
             # self.group_name = f"user_{user.id}"
-            self.group_name = f"user_{user.id}_notifications"
-            log.info(
-                "Consumers Connect --> Group Name: %s, Channel Name: %s",
-                self.group_name,
-                self.channel_name,
-            )
+            self.group_name = "user-notifications"
+            # self.group_name = f"user_{user.id}_notifications"
+            # log.warning("User: %s, Group Name: %s", user, self.group_name)
             # Join room group
             await self.channel_layer.group_add(self.group_name, self.channel_name)
             await self.accept()  # To accept the connection
             # Check for login notification flag after accepting
-            if cache.get(f"user_{user.id}_login_notification"):
+            if cache.get(f"user_{self.user.id}_login_notification"):
                 # Send login notification
                 html = get_template("core/partials/notifications.html").render(
                     context={
-                        "username": user.username,
+                        "username": self.user.username,
                         "title": "Добро пожаловать!",
-                        "message": f"{user.username} вошел в систему.",
+                        "message": f"{self.user.username} вошел в систему.",
                         "level": "info",
                     }
                 )
-                # message = render_to_string(
-                #     "core/partials/notifications.html",
-                #     # message =
-                #     {
-                #         "username": user.username,
-                #         "title": "Добро пожаловать!",
-                #         "message": f"Пользователь {user.username} вошел в систему.",
-                #         "level": "info",
-                #     },
-                # )
                 try:
                     # await self.send(text_data=json.dumps({"message": html}))
                     await self.send(text_data=html)
                 except OSError:
                     pass  # Client may have disconnected
                 # Clear the flag
-                cache.delete(f"user_{user.id}_login_notification")
-                log.info(
-                    "Consumers -> Login notification sent on connect for user: %s",
-                    user.id,
+                cache.delete(f"user_{self.user.id}_login_notification")
+                log.warning(
+                    "LOGIN User: %s, with Group Name: %s", self.user.id, self.group_name
                 )
 
     async def system_notification(self, event):
         user = self.scope["user"]
-        title_text = event.get("title", "Уведомление")
+        title_text = event["title"]
         message_text = event["message"]
-        level = event.get("level", "info")
-        timestamp = event.get("timestamp", timezone.now().isoformat())
+        level = event["level"]
+        timestamp = event["timestamp"]
         html = get_template("core/partials/notifications.html").render(
             context={
                 "username": user.username,
                 "title": title_text,
                 "message": message_text,
-                "level": "info",
+                "level": level,
+                "timestamp": timestamp,
             }
         )
-        # message = render_to_string(
-        #     "core/partials/notifications.html",
-        #     {
-        #         "title": title,
-        #         "message": message_text,
-        #         "level": level,
-        #         "timestamp": timestamp,
-        #     },
-        # )
-        log.info("Consumers --> system_notification event: %s", event)
+        log.warning("EVENT: %s", event)
         try:
             await self.send(text_data=html)
             # await self.send(text_data=json.dumps({"message": message}))
@@ -91,6 +73,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def user_joined(self, event):
         user = self.scope["user"]
+        log.warning(
+            "User %s, Sidned Up with EVENT: %s",
+            user,
+            event,
+        )
         html = get_template("core/partials/notifications.html").render(
             context={
                 "username": event["text"],
@@ -117,8 +104,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         # Leave room group
         if hasattr(self, "group_name"):
             # cache.clear()
-            log.info(
-                "Consumers --> disconnect group_name: %s, channel_name: %s",
+            log.warning(
+                "DISCONNECT group_name: %s, channel_name: %s",
                 self.group_name,
                 self.channel_name,
             )
