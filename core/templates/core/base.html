@@ -45,6 +45,26 @@
     <script>
         let numberSpan = document.getElementById('notification-number')
         let clearBtn = document.getElementById('clear-btn')
+        const dropdownButton = document.getElementById('dropdownMenuButton1')
+        const dropdown = document.getElementById('notification-dropdown')
+
+        // Toggle dropdown on button click
+        dropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdownButton.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Prevent closing when clicking inside dropdown
+        dropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
 
         document.body.addEventListener('htmx:wsAfterMessage', (e) => {
             let numberOfNotifications = numberSpan.innerHTML;
@@ -60,7 +80,7 @@
             let notifications = dropdown.querySelectorAll('div')
             notifications.forEach(notification => notification.remove())
             numberSpan.innerHTML = ''
-        }) 
+        })
     </script>
 
 </body>

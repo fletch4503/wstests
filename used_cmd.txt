@@ -9,3 +9,9 @@ python manage.py daphne wstests.asgi:application
 daphne wstests.asgi:application --port 8000 - для запуска asgi-сервера!!!
 
 taskkill /f /im daphne.exe
+
+tasklist | find "python"
+
+netstat -ano | find "8000"
+
+taskkill /PID 29644 /F
