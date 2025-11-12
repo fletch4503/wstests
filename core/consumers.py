@@ -89,17 +89,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=html)
         # await self.send(text_data=event["text"])
 
-    # def receive(self, text_data=None, bytes_data=None):
-    #     # Called with either text_data or bytes_data for each frame
-    #     # You can call:
-    #     self.send(text_data="Hello world!")
-    #     # Or, to send a binary frame:
-    #     self.send(bytes_data="Hello world!")
-    #     # Want to force-close the connection? Call:
-    #     self.close()
-    #     # Or add a custom WebSocket error code!
-    #     self.close(code=4123)
-
     async def disconnect(self, close_code):
         # Leave room group
         if hasattr(self, "group_name"):
@@ -110,3 +99,14 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 self.channel_name,
             )
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    # def receive(self, text_data=None, bytes_data=None):
+    #     # Called with either text_data or bytes_data for each frame
+    #     # You can call:
+    #     self.send(text_data="Hello world!")
+    #     # Or, to send a binary frame:
+    #     self.send(bytes_data="Hello world!")
+    #     # Want to force-close the connection? Call:
+    #     self.close()
+    #     # Or add a custom WebSocket error code!
+    #     self.close(code=4123)

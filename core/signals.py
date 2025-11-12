@@ -76,7 +76,7 @@ def send_login_notification(sender, request, user, **kwargs):
 user_logged_in.connect(send_login_notification)
 
 
-# @receiver(user_logged_out)
+@receiver(user_logged_out)
 def send_logout_notification(sender, request, user, **kwargs):
     # Отправляем уведомление о выходе через WebSocket
     cache.clear()
@@ -103,4 +103,4 @@ def send_logout_notification(sender, request, user, **kwargs):
     )
 
 
-user_logged_out.connect(send_logout_notification)
+# user_logged_out.connect(send_logout_notification)

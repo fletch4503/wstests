@@ -14,24 +14,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx-ext-ws/dist/ws.js"></script>
 
-    {% comment %} <script>
-    document.body.addEventListener('htmx:wsMessage', function(event) {
-        const messageData = event.detail.message;
-        // Handle incoming messages and update the notifications area
-        if (messageData) {
-            // Assuming the message is HTML, insert it into the notifications div
-            const notificationsDiv = document.getElementById('notifications');
-            notificationsDiv.insertAdjacentHTML('afterbegin', messageData);
-        }
-    });
-    </script> {% endcomment %}
-
     {% block head %}
 
     {% endblock %}
 </head>
 
-<body hx-ext="ws" ws-connect="/ws/notifications/">
+<body hx-ext="ws" ws-connect="/ws/notifications/" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
 
     {% include 'core/navbar.html' %}
 
@@ -43,8 +31,10 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/tw-elements/dist/js/index.min.js"></script>
     <script>
+        // Here will be working with Users notifications in navpanel.html - SignedUp/Login/Logout
         let numberSpan = document.getElementById('notification-number')
         let clearBtn = document.getElementById('clear-btn')
+        // Added later to hide elements dropdownMenuButton1 and notification-dropdown
         const dropdownButton = document.getElementById('dropdownMenuButton1')
         const dropdown = document.getElementById('notification-dropdown')
 
