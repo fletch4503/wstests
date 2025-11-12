@@ -71,6 +71,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         except OSError:
             pass  # Client may have disconnected
 
+    async def disconnect(self, close_code):
+        # Leave room group
+        if hasattr(self, "group_name"):
+            # cache.clear()
+            log.warning(
+                "DISCONNECT group_name: %s, channel_name: %s",
+                self.group_name,
+                self.channel_name,
+            )
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
     async def user_joined(self, event):
         user = self.scope["user"]
         log.warning(
@@ -88,17 +99,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         )
         await self.send(text_data=html)
         # await self.send(text_data=event["text"])
-
-    async def disconnect(self, close_code):
-        # Leave room group
-        if hasattr(self, "group_name"):
-            # cache.clear()
-            log.warning(
-                "DISCONNECT group_name: %s, channel_name: %s",
-                self.group_name,
-                self.channel_name,
-            )
-            await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     # def receive(self, text_data=None, bytes_data=None):
     #     # Called with either text_data or bytes_data for each frame
