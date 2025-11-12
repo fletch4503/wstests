@@ -15,3 +15,5 @@ tasklist | find "python"
 netstat -ano | find "8000"
 
 taskkill /PID 29644 /F
+
+taskkill /IM python.exe /F

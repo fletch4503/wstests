@@ -19,7 +19,10 @@
     {% endblock %}
 </head>
 
-<body hx-ext="ws" ws-connect="/ws/notifications/" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+<body {% if user.is_authenticated %}
+        hx-ext="ws" ws-connect="/ws/notifications/"
+      {% endif %} 
+        data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
 
     {% include 'core/navbar.html' %}
 
